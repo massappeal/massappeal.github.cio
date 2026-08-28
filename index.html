@@ -210,6 +210,11 @@
       border-color: rgba(183, 148, 244, 0.42);
     }
 
+    .metric.capped-shares {
+      border-color: rgba(245, 158, 11, 0.52);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
     .metric .k {
       margin-bottom: 0.26rem;
       color: var(--muted);
@@ -316,20 +321,20 @@
         </div>
         <div>
           <label for="accountSize">Account Size ($)</label>
-          <input id="accountSize" type="number" step="0.01" value="6420" />
+          <input id="accountSize" type="number" step="0.01" value="25000" />
         </div>
         <div class="risk-trio">
           <div>
-            <label for="maxTradePct">Max Trade %</label>
+            <label for="maxTradePct">Max Trade Size (%)</label>
             <input id="maxTradePct" type="number" step="0.01" value="20" />
           </div>
           <div>
-            <label for="riskPct">Acct Risk %</label>
+            <label for="riskPct">Account Risk (%)</label>
             <input id="riskPct" type="number" step="0.01" value="1" />
           </div>
           <div>
-            <label for="slippagePct">Slippage %</label>
-            <input id="slippagePct" type="number" step="0.01" value="0.5" />
+            <label for="slippagePct">Slippage Tolerance (%)</label>
+            <input id="slippagePct" type="number" step="0.01" value="0.2" />
           </div>
         </div>
       </div>
@@ -353,7 +358,7 @@
           <div>
             <label for="standardInvalidation">Invalidation Price</label>
             <input id="standardInvalidation" type="number" step="0.0001" value="98" />
-            <div id="standardInvalidationDistance" class="input-readout">From Entry: n/a</div>
+            <div id="standardInvalidationDistance" class="input-readout">% from Entry: n/a</div>
           </div>
         </div>
 
@@ -423,6 +428,10 @@
             <div class="metric">
               <div class="k">Trade Value</div>
               <div class="v" id="outTradeValue">n/a</div>
+            </div>
+            <div id="cappedSharesMetric" class="metric capped-shares">
+              <div class="k">Capped Shares</div>
+              <div class="v" id="outCappedShares">n/a</div>
             </div>
             <div class="metric">
               <div class="k">Capped Trade Value</div>
@@ -555,10 +564,12 @@
       $("outRiskPerShare").textContent = validRisk ? money(riskPerShare) : "n/a";
       $("outShares").textContent = validRisk ? intFmt(shares) : "n/a";
       $("outTradeValue").textContent = validRisk ? money(tradeValue) : "n/a";
+      $("outCappedShares").textContent = validRisk ? intFmt(cappedShares) : "n/a";
       $("outCappedTradeValue").textContent = validRisk ? money(cappedTradeValue) : "n/a";
       $("outCappedRisk").textContent = validRisk ? money(cappedRiskDollar) : "n/a";
       $("outAdjUnderlying").textContent = isLeveraged ? price(adjustedUnderlyingInvalidation) : "n/a";
       $("outUnderlyingMove").textContent = isLeveraged ? pct(underlyingMovePct) : "n/a";
+      $("cappedSharesMetric").classList.toggle("hidden", !exceedsMaxTrade && validRisk);
 
       const statusBox = $("statusBox");
 
@@ -570,7 +581,7 @@
         statusBox.textContent = "This setup produces invalid risk-per-share for the selected bias. Check entry and stop relationships.";
       } else if (exceedsMaxTrade) {
         statusBox.className = "status warn";
-        statusBox.textContent = "Trade value exceeds your max trade size. Use the capped size shown in the detailed view.";
+        statusBox.textContent = "Trade value exceeds your max trade size. Use the Capped Shares value in More trade details.";
       } else {
         statusBox.className = "status ok";
         statusBox.textContent = "Trade fits within your risk and max trade size rules.";
