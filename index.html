@@ -186,7 +186,7 @@
     }
 
     .input-readout.good { color: var(--green); border-color: rgba(34, 197, 94, 0.55); background: rgba(34, 197, 94, 0.10); }
-    .input-readout.warning { color: var(--orange); border-color: rgba(255, 165, 0, 1); background: rgba(255, 165, 0, 1); }
+    .input-readout.warning { color: var(--orange); border-color: rgba(245, 158, 11, 0.60); background: rgba(245, 158, 11, 0.10); }
     .input-readout.danger { color: var(--red); border-color: rgba(239, 68, 68, 0.60); background: rgba(239, 68, 68, 0.10); }
 
     .hidden { display: none; }
@@ -321,7 +321,7 @@
         </div>
         <div>
           <label for="accountSize">Account Size ($)</label>
-          <input id="accountSize" type="number" step="0.01" value="6240" />
+          <input id="accountSize" type="number" step="0.01" value="25000" />
         </div>
         <div class="risk-trio">
           <div>
@@ -330,11 +330,11 @@
           </div>
           <div>
             <label for="riskPct">Account Risk (%)</label>
-            <input id="riskPct" type="number" step="0.01" value="0.2" />
+            <input id="riskPct" type="number" step="0.01" value="1" />
           </div>
           <div>
             <label for="slippagePct">Slippage Tolerance (%)</label>
-            <input id="slippagePct" type="number" step="0.01" value="0.5" />
+            <input id="slippagePct" type="number" step="0.01" value="0.2" />
           </div>
         </div>
       </div>
@@ -552,10 +552,13 @@
       const shares = validRisk ? Math.floor(rawShares) : NaN;
       const tradeValue = validRisk ? shares * tradeEntryPrice : NaN;
       const maxSharesByValue = tradeEntryPrice > 0 ? Math.floor(maxTradeDollar / tradeEntryPrice) : NaN;
+      const canBuyOneShareByAllocation = Number.isFinite(maxSharesByValue) && maxSharesByValue >= 1;
+      const canBuyOneShareByRisk = validRisk && Number.isFinite(shares) && shares >= 1;
       const cappedShares = validRisk && Number.isFinite(maxSharesByValue) ? Math.min(shares, maxSharesByValue) : NaN;
-      const cappedTradeValue = validRisk ? cappedShares * tradeEntryPrice : NaN;
-      const cappedRiskDollar = validRisk ? cappedShares * riskPerShare : NaN;
+      const cappedTradeValue = Number.isFinite(cappedShares) ? cappedShares * tradeEntryPrice : NaN;
+      const cappedRiskDollar = Number.isFinite(cappedShares) ? cappedShares * riskPerShare : NaN;
       const exceedsMaxTrade = validRisk && tradeValue > maxTradeDollar;
+      const noWholeSharePosition = validTradePrices && (!canBuyOneShareByAllocation || !canBuyOneShareByRisk || cappedShares < 1);
 
       $("outAccountRisk").textContent = money(accountRiskDollar);
       $("outEntry").textContent = price(tradeEntryPrice);
@@ -569,7 +572,7 @@
       $("outCappedRisk").textContent = validRisk ? money(cappedRiskDollar) : "n/a";
       $("outAdjUnderlying").textContent = isLeveraged ? price(adjustedUnderlyingInvalidation) : "n/a";
       $("outUnderlyingMove").textContent = isLeveraged ? pct(underlyingMovePct) : "n/a";
-      $("cappedSharesMetric").classList.toggle("hidden", !exceedsMaxTrade && validRisk);
+      $("cappedSharesMetric").classList.toggle("hidden", !exceedsMaxTrade && !noWholeSharePosition && validRisk);
 
       const statusBox = $("statusBox");
 
@@ -579,6 +582,9 @@
       } else if (!validRisk) {
         statusBox.className = "status bad";
         statusBox.textContent = "This setup produces invalid risk-per-share for the selected bias. Check entry and stop relationships.";
+      } else if (noWholeSharePosition) {
+        statusBox.className = "status bad";
+        statusBox.textContent = !canBuyOneShareByAllocation ? "No valid whole-share position: one share costs more than your maximum trade allocation of " + money(maxTradeDollar) + "." : "No valid whole-share position: one share exceeds your defined dollar-risk limit.";
       } else if (exceedsMaxTrade) {
         statusBox.className = "status warn";
         statusBox.textContent = "Trade value exceeds your max trade size. Use the Capped Shares value in More trade details.";
