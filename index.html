@@ -553,7 +553,7 @@
       const slippagePct = num("slippagePct");
       const isLeveraged = $("isLeveraged").checked;
       const allowFractional = $("allowFractionalShares").checked;
-      const shareDecimals = Math.min(4, Math.max(2, Math.floor(num("fractionalDecimals"))));
+      const shareDecimals = Math.min(4, Math.max(1, Math.floor(num("fractionalDecimals"))));
       const tradeDetails = $("tradeDetails");
 
       const accountRiskDollar = accountSize * (riskPct / 100);
