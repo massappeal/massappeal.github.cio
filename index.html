@@ -24,6 +24,7 @@
       --body: clamp(0.8rem, 1.18vw, 0.92rem);
       --value: clamp(1rem, 2.35vw, 1.45rem);
       --title: clamp(1rem, 2.65vw, 1.38rem);
+      --control-height: clamp(2.2rem, 4.6vw, 2.5rem);
     }
 
     * { box-sizing: border-box; }
@@ -70,37 +71,41 @@
     .risk-card { margin-top: var(--gap); padding: var(--pad); }
 
     .section-heading {
-      margin-bottom: 0.52rem;
       color: var(--text);
       font-size: clamp(0.8rem, 1.35vw, 0.9rem);
       font-weight: 760;
       letter-spacing: 0.01em;
     }
 
-    .risk-fields {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(5.25rem, 1fr));
-      gap: var(--gap);
-      align-items: end;
-    }
-
-    .risk-trio {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: var(--gap);
-    }
-
-    .fractional-toggle {
+    .section-header {
       display: flex;
       align-items: center;
-      min-height: clamp(2rem, 4vw, 2.3rem);
-      padding-bottom: 0.08rem;
+      justify-content: space-between;
+      gap: var(--gap);
+      margin-bottom: 0.52rem;
     }
 
-    .fractional-toggle label {
+    .header-checkrow {
+      display: flex;
+      align-items: center;
+      flex: 0 0 auto;
+      min-height: 1.5rem;
+    }
+
+    .header-checkrow label {
       margin: 0;
       cursor: pointer;
+      color: #d4dcff;
+      font-size: var(--label);
+      font-weight: 650;
       white-space: nowrap;
+    }
+
+    .risk-fields {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(5.6rem, 1fr));
+      gap: var(--gap);
+      align-items: end;
     }
 
     .workspace {
@@ -123,13 +128,6 @@
 
     .entry-header h2 { min-width: 0; }
 
-    .header-checkrow {
-      display: flex;
-      align-items: center;
-      flex: 0 0 auto;
-      min-height: 1.5rem;
-    }
-
     label {
       display: block;
       margin-bottom: 0.28rem;
@@ -140,7 +138,8 @@
 
     input, select {
       width: 100%;
-      min-height: clamp(2rem, 4vw, 2.3rem);
+      height: var(--control-height);
+      min-height: var(--control-height);
       padding: 0.38rem 0.5rem;
       border: 1px solid var(--line);
       border-radius: clamp(0.42rem, 0.8vw, 0.56rem);
@@ -156,20 +155,11 @@
 
     input[type="checkbox"] {
       width: 0.9rem;
-      min-height: auto;
       height: 0.9rem;
+      min-height: auto;
       margin: 0 0.42rem 0 0;
       accent-color: var(--violet);
       transform: scale(1.02);
-    }
-
-    .header-checkrow label {
-      margin: 0;
-      cursor: pointer;
-      color: #d4dcff;
-      font-size: var(--label);
-      font-weight: 650;
-      white-space: nowrap;
     }
 
     .entry-row {
@@ -184,6 +174,11 @@
       grid-template-columns: repeat(4, minmax(5.8rem, 1fr));
       align-items: start;
       gap: var(--gap);
+    }
+
+    .fractional-decimals {
+      margin-top: var(--gap);
+      width: min(100%, 10rem);
     }
 
     .input-readout {
@@ -297,26 +292,19 @@
     .leveraged-output { margin-top: var(--gap); }
     .secondary-output .metric { padding: 0.56rem; }
 
-    @media (max-width: 60rem) {
-      .risk-fields { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .risk-trio { grid-column: span 3; }
-    }
-
     @media (max-width: 54rem) {
       .workspace { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 46rem) {
       .risk-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .risk-trio { grid-column: span 2; }
       .leveraged-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 28rem) {
       .wrap { padding: 0.4rem; }
-      .risk-fields, .risk-trio, .entry-row, .leveraged-row, .primary-output, .secondary-output, .leveraged-output { grid-template-columns: 1fr; }
-      .risk-trio { grid-column: auto; }
-      .entry-header { align-items: flex-start; flex-direction: column; }
+      .risk-fields, .entry-row, .leveraged-row, .primary-output, .secondary-output, .leveraged-output { grid-template-columns: 1fr; }
+      .section-header, .entry-header { align-items: flex-start; flex-direction: column; }
     }
   </style>
 </head>
@@ -331,7 +319,14 @@
     </header>
 
     <section class="card risk-card" aria-labelledby="risk-title">
-      <h2 id="risk-title" class="section-heading">Risk Settings</h2>
+      <div class="section-header">
+        <h2 id="risk-title" class="section-heading">Risk Settings</h2>
+        <div class="header-checkrow">
+          <input id="allowFractionalShares" type="checkbox" />
+          <label for="allowFractionalShares">Fractional Shares</label>
+        </div>
+      </div>
+
       <div class="risk-fields">
         <div>
           <label for="bias">Bias</label>
@@ -344,33 +339,28 @@
           <label for="accountSize">Account Size ($)</label>
           <input id="accountSize" type="number" step="0.01" value="6240" />
         </div>
-        <div class="risk-trio">
-          <div>
-            <label for="maxTradePct">Max Trade %</label>
-            <input id="maxTradePct" type="number" step="0.01" value="20" />
-          </div>
-          <div>
-            <label for="riskPct">Acct Risk %</label>
-            <input id="riskPct" type="number" step="0.01" value="0.2" />
-          </div>
-          <div>
-            <label for="slippagePct">Slippage %</label>
-            <input id="slippagePct" type="number" step="0.01" value="0.5" />
-          </div>
-        </div>
-        <div class="fractional-toggle">
-          <input id="allowFractionalShares" type="checkbox" />
-          <label for="allowFractionalShares">Fractional Shares</label>
+        <div>
+          <label for="maxTradePct">Max Trade %</label>
+          <input id="maxTradePct" type="number" step="0.01" value="20" />
         </div>
         <div>
-          <label for="fractionalDecimals">Share Decimals</label>
-          <select id="fractionalDecimals">
-            <option value="1">1</option>
-            <option value="2" selected>2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-          </select>
+          <label for="riskPct">Acct Risk %</label>
+          <input id="riskPct" type="number" step="0.01" value="0.2" />
         </div>
+        <div>
+          <label for="slippagePct">Slippage %</label>
+          <input id="slippagePct" type="number" step="0.01" value="0.5" />
+        </div>
+      </div>
+
+      <div id="fractionalDecimalsWrap" class="fractional-decimals hidden">
+        <label for="fractionalDecimals">Share Decimals</label>
+        <select id="fractionalDecimals">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
       </div>
     </section>
 
@@ -537,6 +527,12 @@
       }
     }
 
+    function updateFractionalControls() {
+      const allowFractional = $("allowFractionalShares").checked;
+      $("fractionalDecimalsWrap").classList.toggle("hidden", !allowFractional);
+      calculate();
+    }
+
     function toggleMode() {
       const leveraged = $("isLeveraged").checked;
       $("standardFields").classList.toggle("hidden", leveraged);
@@ -642,13 +638,15 @@
       }
     }
 
-    ["bias", "accountSize", "maxTradePct", "riskPct", "slippagePct", "allowFractionalShares", "fractionalDecimals", "standardEntry", "standardInvalidation", "etfLivePrice", "underlyingEntry", "underlyingInvalidation", "leverageMultiple"].forEach((id) => {
+    ["bias", "accountSize", "maxTradePct", "riskPct", "slippagePct", "fractionalDecimals", "standardEntry", "standardInvalidation", "etfLivePrice", "underlyingEntry", "underlyingInvalidation", "leverageMultiple"].forEach((id) => {
       const element = $(id);
       if (element) element.addEventListener("input", calculate);
-      if (element && (element.type === "checkbox" || element.tagName === "SELECT")) element.addEventListener("change", calculate);
+      if (element && element.tagName === "SELECT") element.addEventListener("change", calculate);
     });
 
+    $("allowFractionalShares").addEventListener("change", updateFractionalControls);
     $("isLeveraged").addEventListener("change", toggleMode);
+    updateFractionalControls();
     toggleMode();
   </script>
 </body>
